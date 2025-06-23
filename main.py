@@ -2,14 +2,17 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-import openai, os
+from openai import OpenAI
+import os
 
 app = Flask(__name__)
 
+# กำหนดคีย์จาก environment variables
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
+client = OpenAI(api_key=OPENAI_API_KEY)
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
@@ -26,7 +29,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_text = event.message.text
-    resp = openai.ChatCompletion.create(
+
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "คุณคือครูสอนเขียนโปรแกรม Python สำหรับนักเรียนมัธยม"},
@@ -34,8 +38,9 @@ def handle_message(event):
         ],
         max_tokens=512
     )
-    reply = resp.choices[0].message.content.strip()
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
+
+    reply_text = response.choices[0].message.content.strip()
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
