@@ -36,7 +36,7 @@ def handle_message(event):
             {"role": "system", "content": "คุณคือครูสอนเขียนโปรแกรม Python สำหรับนักเรียนมัธยม"},
             {"role": "user", "content": user_text}
         ],
-        max_tokens=512
+        max_tokens=100
     )
 
     reply_text = response.choices[0].message.content.strip()
