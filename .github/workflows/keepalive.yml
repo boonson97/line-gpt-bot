@@ -11,4 +11,4 @@ jobs:
     steps:
       - name: Send ping to Render app
         run: |
-          curl -s https://github.com/boonson97/line-gpt-bot/new/main/ > /dev/null
+          curl -s https://line-gpt-bot-1qwa.onrender.com/ > /dev/null
