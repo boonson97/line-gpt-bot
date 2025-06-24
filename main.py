@@ -7,7 +7,6 @@ import os
 
 app = Flask(__name__)
 
-# กำหนดคีย์จาก environment variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
@@ -30,16 +29,24 @@ def callback():
 def handle_message(event):
     user_text = event.message.text
 
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "คุณคือครูสอนเขียนโปรแกรม Python สำหรับนักเรียนมัธยม"},
-            {"role": "user", "content": user_text}
-        ],
-        max_tokens=100
-    )
+    # 🔒 จำกัดความยาวข้อความจากผู้ใช้
+    if len(user_text) > 500:
+        reply_text = "คำถามยาวเกินไป กรุณาย่อให้สั้นลงหน่อยครับ (ไม่เกิน 500 ตัวอักษร)"
+    else:
+        try:
+            # 🔧 จำกัดจำนวน token ที่ GPT ตอบกลับ (สูงสุด 150)
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "คุณคือครูสอนเขียนโปรแกรม Python สำหรับนักเรียนมัธยม"},
+                    {"role": "user", "content": user_text}
+                ],
+                max_tokens=150
+            )
+            reply_text = response.choices[0].message.content.strip()
+        except Exception as e:
+            reply_text = "ขออภัย ระบบไม่สามารถตอบได้ในขณะนี้"
 
-    reply_text = response.choices[0].message.content.strip()
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
 if __name__ == "__main__":
