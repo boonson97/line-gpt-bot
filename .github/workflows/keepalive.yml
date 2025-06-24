@@ -1,0 +1,14 @@
+name: Keep Render Bot Awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # ทุก 10 นาที
+  workflow_dispatch:        # สามารถกดรันเองได้
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send ping to Render app
+        run: |
+          curl -s https://github.com/boonson97/line-gpt-bot/new/main/ > /dev/null
